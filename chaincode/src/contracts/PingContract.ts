@@ -8,4 +8,9 @@ export class PingContract extends Contract {
     public async ping(ctx: Context): Promise<string> {
         return 'Pong';
     }
+    @Transaction()
+    @Returns('string')
+    public async ping2(ctx: Context, name: string): Promise<string> {
+        return `Pong ${name}`;
+    }
 } 

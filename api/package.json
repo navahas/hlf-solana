@@ -9,12 +9,13 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC", 
+  "license": "ISC",
   "description": "",
   "dependencies": {
     "@grpc/grpc-js": "^1.11.1",
     "@hyperledger/fabric-gateway": "^1.5.1",
     "cors": "^2.8.5",
+    "ethers": "^6.13.5",
     "express": "^4.18.2"
   },
   "devDependencies": {

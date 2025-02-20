@@ -1,11 +1,11 @@
 #### Deposit
-GET http://localhost:5551/golf/
+GET http://localhost:5551/ping
 
 ###
-GET http://localhost:5551/golf/ping
+GET http://localhost:5551s/ping
 
 ### Mint Green Fee
-POST http://localhost:5551/golf/mintGreenFee
+POST http://localhost:5551s/mintGreenFee
 Content-Type: application/json
 
 {

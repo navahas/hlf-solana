@@ -3,6 +3,9 @@
 /.pnp
 .pnp.js
 
+fabric-samples/
+
+
 node_modules
 # testing
 /coverage
