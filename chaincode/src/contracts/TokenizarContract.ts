@@ -26,7 +26,8 @@ export class TokenizarContract extends Contract {
                                     name: string, 
                                     amount: number, 
                                     attributesJSON: string,
-                                    signature: string
+                                    signature: string,
+                                    message: string
                                 
                                 ): Promise<void> {
 
@@ -37,7 +38,7 @@ export class TokenizarContract extends Contract {
         try {
             // Recuperar la dirección que firmó el mensaje
             // El mensaje firmado debería contener al menos el tokenId y el ownerAddress
-            const message = `tokenId:${tokenId},ownerAddress:${ownerAddress},name:${name},amount:${amount},attributes:${attributesJSON}`;
+            
             const messageHash = ethers.hashMessage(message);
             const signerAddress = ethers.recoverAddress(messageHash, signature);
             

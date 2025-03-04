@@ -1,5 +1,5 @@
 import { Context, Contract, Info, Returns, Transaction } from 'fabric-contract-api';
-
+import {ethers} from 'ethers';
 interface User {
     ethereumAddress: string;
     role: string;
@@ -8,13 +8,45 @@ interface User {
 @Info({ title: 'UserContract', description: 'Contrato para gestionar usuarios con direcciones Ethereum como identificador único y roles' })
 export class UserContract extends Contract {
 
+    // Inicializar el contrato
+    @Transaction()
+    public async initLedger(ctx: Context): Promise<void> {
+        console.log('Inicializando el contrato de usuarios');
+        // Podemos pre-cargar algunos usuarios de ejemplo si es necesario
+        const users: User[] = [
+            {
+                ethereumAddress: '0x1234567890123456789012345678901234567890',
+                role: 'admin'
+            },
+        ];
+        for (const user of users) {
+            const key = this.getUserKey(user.ethereumAddress);
+            await ctx.stub.putState(`admin:key`, Buffer.from(JSON.stringify(user)));
+        }
+    }
+
     // Clave para almacenar usuarios
     private getUserKey(ethereumAddress: string): string {
         return `user:${ethereumAddress}`;
     }
 
     @Transaction()
-    public async createUser(ctx: Context, ethereumAddress: string, role: string): Promise<void> {
+    public async createUser(ctx: Context, ethereumAddress: string, role: string, signature: string, message: string): 
+    Promise<void> {
+
+        // validar que el uusuario de la firma es un admin
+        const messageHash = ethers.hashMessage(message);
+        const signerAddress = ethers.recoverAddress(messageHash, signature);
+
+        const adminKey = `admin:key`;
+        const adminBuffer = await ctx.stub.getState(adminKey);
+        const admin = JSON.parse(adminBuffer.toString());
+
+
+        if (signerAddress.toLowerCase() !== admin.ethereumAddress.toLowerCase()) {
+            throw new Error(`La firma no corresponde al usuario ${ethereumAddress}`);
+        }
+
         const key = this.getUserKey(ethereumAddress);
         
         // Verificar si el usuario ya existe
