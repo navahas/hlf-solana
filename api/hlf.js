@@ -7,8 +7,8 @@ import { dirname } from 'node:path';
 
 const __dirname = dirname(".");
 
-//const ROOT = path.resolve(__dirname, "../fabric-samples/test-network")
-const ROOT = "/Users/joseviejo/go/src/github.com/Jviejo/fabric-samples/test-network"
+const ROOT = path.resolve(__dirname, "../fabric-samples/test-network")
+// const ROOT = "/Users/joseviejo/go/src/github.com/Jviejo/fabric-samples/test-network"
 const BASE = `${ROOT}/organizations/peerOrganizations/org1.example.com`
 
 // const BASE = "/Users/joseviejo/go/src/github.com/Jviejo/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com"

@@ -25,6 +25,19 @@ app.get('/ping', async (req, res) => {
     }
 });
 
+
+app.get('/pingHola/:name', async (req, res) => {
+    try {
+        const result = await pingContract.submitTransaction('pingHola', req.params.name);
+        console.log(result);
+        res.json({ result: Buffer.from(result).toString('utf-8') });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
 app.get('/ping2/:name', async (req, res) => {
     try {
         const result = await pingContract.submitTransaction('ping2', req.params.name);
