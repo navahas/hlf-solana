@@ -11,7 +11,7 @@ https://github.com/codecrypto-academy/pfm-traza-hlf-2025
 - Tener Docker instalado
 - Instalar Fabric Samples
   1. https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html
-  2. https://hyperledger.github.io/fabric-samples/
+  2. https://github.com/hyperledger/fabric-samples
   3. https://hyperledger-fabric.readthedocs.io/en/latest/getting_started_run_fabric.html
 
 ### Crear la red hlf
