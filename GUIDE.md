@@ -15,6 +15,7 @@ For a deeper understanding of Hyperledger Fabric, refer to the official document
 Before you begin, ensure you have the following installed and configured on your system:
 
 1.  **Docker & Docker Compose:**
+
     <details>
       <summary>Details for Docker & Docker Compose installation</summary>
       Docker Desktop (which includes Docker Engine and Docker Compose) from the [official Docker website](https://docs.docker.com/get-docker/).
