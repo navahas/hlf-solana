@@ -10,11 +10,10 @@ const port = 5551;
 app.use(cors());
 app.use(bodyParser.json());
 
-
-
 const pingContract = await connectFabric("PingContract");
+console.log("pingContract: ", pingContract);
 
-app.get('/ping', async (req, res) => {
+app.get('/ping', async (_req, res) => {
     try {
         const result = await pingContract.submitTransaction('ping');
         console.log(result);
