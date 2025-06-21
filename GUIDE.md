@@ -4,25 +4,27 @@ Hyperledger Fabric development environment for the PFM-TRAZA-HLF-2025 project.
 
 - Initial version kept as legacy guide: [LEGACY_GUIDE.md](./LEGACY_GUIDE.md)
 
-## Setting Up the Development Environment - Hyperledger Fabric
-
 ### Handy Hyperledger Fabric Resources
 For a deeper understanding of Hyperledger Fabric, refer to the official documentation:
 1. [Hyperledger Fabric Prerequisites](https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html)
 2. [Getting Started - Run Fabric](https://hyperledger-fabric.readthedocs.io/en/latest/getting_started_run_fabric.html)
 
+## Setting Up the Development Environment - Hyperledger Fabric
+
 ### Prerequisites
 Before you begin, ensure you have the following installed and configured on your system:
 
 1. **Docker & Docker Compose:**
-- Docker Desktop (which includes Docker Engine and Docker Compose) from the [official Docker website](https://docs.docker.com/get-docker/).
+
+Docker Desktop (which includes Docker Engine and Docker Compose) from the [official Docker website](https://docs.docker.com/get-docker/).
 Verify your installation by running:
 ```bash
 docker --version
 docker compose version
 ```
-
+---
 2. **Fabric Samples, Binaries, and Docker Images:**
+
 These components are essential for running and interacting with Hyperledger Fabric.
 Execute the following commands in your terminal:
 
@@ -36,13 +38,17 @@ curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/ins
 ```
 This will create a `fabric-samples` directory in your current location.
 
+---
 3. **Host Machine Resolution for Docker:**
+
 When running Hyperledger Fabric chaincode as an external service
 (Chaincode-as-a-Service - CaaS), Docker containers often need to communicate
 back to services running on your host machine.
 
 To enable this, you need to ensure your system can resolve `host.docker.internal` to your loopback IP address (`127.0.0.1`).
+
 **Verify your `/etc/hosts` file:**
+
 Open `/etc/hosts` (on Linux/macOS) or `C:\Windows\System32\drivers\etc\hosts`
 (on Windows) with administrator/root privileges.
 ```bash
