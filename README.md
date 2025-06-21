@@ -1,6 +1,10 @@
 # PFM WEB  3.Tokenización y Trazabilidad
 https://github.com/codecrypto-academy/pfm-traza-hlf-2025
 
+### QuickStart
+Go to the setup guide: [GUIDE.md](./GUIDE.md)
+
+
 ## Resumen Ejecutivo
 El proyecto consiste en una plataforma descentralizada basada en Hyperledger Fabric que permite la trazabilidad completa de productos desde su origen hasta el consumidor final, utilizando registros digitales para representar materias primas y productos terminados.
 

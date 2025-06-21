@@ -1,4 +1,5 @@
 # Project: Development Guide PFM-TRAZA-HLF-2025
+- Initial version kept as legacy guide: [LEGACY_GUIDE.md](./LEGACY_GUIDE.md)
 
 ## Setting Up the Development Environment - Hyperledger Fabric
 
