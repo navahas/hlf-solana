@@ -72,3 +72,8 @@ Inside `./api`:
 ```
 npm i && npm run start
 ```
+---
+### Terminal #4 - Verify Ping
+```
+curl http://localhost:5551/ping
+```
