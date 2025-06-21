@@ -14,15 +14,17 @@ For a deeper understanding of Hyperledger Fabric, refer to the official document
 ### Prerequisites
 Before you begin, ensure you have the following installed and configured on your system:
 
-<details>
-    <summary> 1. **Docker & Docker Compose:** </summary>
-Docker Desktop (which includes Docker Engine and Docker Compose) from the [official Docker website](https://docs.docker.com/get-docker/).
-Verify your installation by running:
-```bash
-docker --version
-docker compose version
-```
-</details>
+1.  **Docker & Docker Compose:**
+    <details>
+      <summary>Details for Docker & Docker Compose installation</summary>
+      Docker Desktop (which includes Docker Engine and Docker Compose) from the [official Docker website](https://docs.docker.com/get-docker/).
+      Verify your installation by running:
+      ```bash
+      docker --version
+      docker compose version
+      ```
+    </details>
+
 2. **Fabric Samples, Binaries, and Docker Images:**
 
 These components are essential for running and interacting with Hyperledger Fabric.
