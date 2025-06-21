@@ -49,7 +49,7 @@ export class TokenizarContract extends Contract {
             
             // Si llegamos aquí, la firma es válida
             console.log(`Firma validada correctamente para el propietario ${ownerAddress}`);
-        } catch (error) {
+        } catch (error: any) {
             throw new Error(`Error al validar la firma: ${error.message}`);
         }
         // Verificar si el token ya existe
@@ -132,7 +132,7 @@ export class TokenizarContract extends Contract {
                 throw new Error(`La firma no corresponde al propietario ${fromAddress}`);
             }
             
-        } catch (error) {
+        } catch (error: any) {
             throw new Error(`Error al validar la firma: ${error.message}`);
         }
             

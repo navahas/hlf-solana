@@ -51,7 +51,7 @@ CONN_EOF
 Inside `./chaincode`
 1. Set environment variables (adjust `CHAINCODE_ID` based on previous deployment logs)
 ```bash
-export CHAINCODE_SERVER_ADDRESS=host.docker.internal:9999
+export CHAINCODE_SERVER_ADDRESS=host.docker.internal:9998
 export CHAINCODE_ID=basicts_1.0:$CHAINCODE_ID_HERE
 # E.G: export CHAINCODE_ID=basicts_1.0:c16a3518b8c6969ac9896e621bb42f74f9b31624ca8ea0508bdfda1daa8d090d
 ```

@@ -11,7 +11,6 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const pingContract = await connectFabric("PingContract");
-console.log("pingContract: ", pingContract);
 
 app.get('/ping', async (_req, res) => {
     try {
