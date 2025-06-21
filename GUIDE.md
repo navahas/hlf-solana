@@ -47,7 +47,7 @@ CONN_EOF
   -ccp ../asset-transfer-basic/chaincode-typescript \
   -ccl typescript
 ```
-
+---
 ### Terminal #2 - Deploying Chaincode (Smart-Contrac)
 Inside `./chaincode`
 1. Set environment variables (adjust `CHAINCODE_ID` based on previous deployment logs)
@@ -66,7 +66,7 @@ npm run build
 # Start the chaincode server
 npm run start
 ```
-
+---
 ### Terminal #3 - Connect API to the Chaincode
 Inside `./api`:
 ```
