@@ -44,7 +44,12 @@ cd fabric-samples/test-network
 ```
 
 ### Terminal #1 - Modify Connection Address & Deploy Chaincode
-1. Inside `./fabric-samples/test-network/scripts/deployCCAAS.sh` change the address in the line `89`:
+1. Inside `./fabric-samples/test-network/scripts/deployCCAAS.sh` change the following:
+- Endorsment policy in line `18`:
+```bash
+CC_END_POLICY="OR('Org1MSP.member')"
+```
+- Address in the line `89`:
 ```bash
 cat > "$tempdir/src/connection.json" <<CONN_EOF
 {
