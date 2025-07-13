@@ -1,4 +1,22 @@
 # Hyperledger Fabric + Solana
+## Architecture Overview
+```
+[User via CURL]
+     |
+     | /encryptMessage ------------------> [Fabric Chaincode]
+     |                                       - Compute DH shared secret
+     |                                       - Encrypt the message
+     |                                       - Return encrypted data
+     |
+     | --> [API Server] ------------------> [Anchor Solana Program]
+     |                                       - Write encrypted data to Solana account
+     |
+     | /decryptMessage ------------------> [API Server]
+     |                                       - Read encrypted data from Solana
+     |                                       - Decrypt using DH secret in Fabric
+     |                                       - Return plain message
+```
+---
 ## CAAS
 This guide provides step-by-step instructions for setting up and running the
 Hyperledger Fabric development environment.
