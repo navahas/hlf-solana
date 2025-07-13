@@ -1,102 +1,104 @@
-# PFM WEB  3.Tokenización y Trazabilidad
-https://github.com/codecrypto-academy/pfm-traza-hlf-2025
+# Hyperledger Fabric + Solana
+## CAAS
+This guide provides step-by-step instructions for setting up and running the
+Hyperledger Fabric development environment.
 
-### QuickStart
-Go to the setup guide: [GUIDE.md](./GUIDE.md)
+### Handy Hyperledger Fabric Resources
+For a deeper understanding of Hyperledger Fabric, refer to the official documentation:
+1. [Hyperledger Fabric Prerequisites](https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html)
+2. [Getting Started - Run Fabric](https://hyperledger-fabric.readthedocs.io/en/latest/getting_started_run_fabric.html)
 
+## Setting Up the Development Environment - Hyperledger Fabric
+### Prerequisites
+- Docker & Docker Compose
+Verify by running: 
+```
+docker --version
+docker compose version
+```
+- Docker Host Resolution
+Verify by running:
+```
+ping host.docker.internal
+```
+If you see `ping: cannot resolve host.docker.internal: Unknown host` go to the [HOST_RESOLUTION.md](./docs/HOST_RESOLUTION.md) section for more information.
+- Install Fabric Samples, Binaries and Docker Images:
+```bash
+# To get the install script 
+# From: https://hyperledger-fabric.readthedocs.io/en/release-2.5/install.html
+curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh && chmod +x install-fabric.sh
 
-## Resumen Ejecutivo
-El proyecto consiste en una plataforma descentralizada basada en Hyperledger Fabric que permite la trazabilidad completa de productos desde su origen hasta el consumidor final, utilizando registros digitales para representar materias primas y productos terminados.
+# Run the script
+./install-fabric.sh docker samples binary
+```
 
-## Objetivo
-Crear un sistema transparente, seguro y descentralizado que permita rastrear el movimiento de materias primas y productos a través de toda la cadena de suministro, garantizando la autenticidad y procedencia de los mismos.
+## Fabric Test Network
 
-## Actores del Sistema
+### Terminal #1 - Starting the Fabric Test Network With Channel
+Inside `./fabric-samples/test-network` directory, bring the network up:
+```bash
+cd fabric-samples/test-network
+./network.sh down
+```
+To start the network 
+```bash
+./network.sh up createChannel -c mychannel
+```
+To start the network with CA
+```bash
+./network.sh up createChannel -ca -c mychannel
+```
 
-### 1. Productor (Producer)
-- Responsable del ingreso de materias primas al sistema
-- Registra las materias primas originales
-- Solo puede transferir a Fábricas
-- Registra información detallada sobre el origen y características de las materias primas
+### Terminal #1 - Modify Connection Address & Deploy Chaincode
+1. Inside `./fabric-samples/test-network/scripts/deployCCAAS.sh` change the following:
+- Endorsment policy in line `18`:
+```bash
+CC_END_POLICY="OR('Org1MSP.member')"
+```
+- Address in the line `89`:
+```bash
+cat > "$tempdir/src/connection.json" <<CONN_EOF
+{
+  "address": "host.docker.internal:9998",
+  "dial_timeout": "10s",
+  "tls_required": false
+}
+CONN_EOF
+```
+2. Deploy and extract `CHAINCODE_ID`
+```bash
+./network.sh deployCCAAS \
+  -ccn basicts \
+  -ccp ../asset-transfer-basic/chaincode-typescript \
+  -ccl typescript
+```
+---
+### Terminal #2 - Deploying Chaincode (Smart-Contrac)
+Inside `./chaincode`
+1. Set environment variables (adjust `CHAINCODE_ID` based on previous deployment logs)
+```bash
+export CHAINCODE_SERVER_ADDRESS=host.docker.internal:9998
+export CHAINCODE_ID=basicts_1.0:$CHAINCODE_ID_HERE
+# E.G: export CHAINCODE_ID=basicts_1.0:c16a3518b8c6969ac9896e621bb42f74f9b31624ca8ea0508bdfda1daa8d090d
+```
+2. Manually Running the Chaincode Server
+Once deployed, you can run the chaincode as an external service:
+```bash
+# Install dependencies and build
+npm install
+npm run build
 
-### 2. Fábrica (Factory)
-- Recibe materias primas de los Productores
-- Transforma materias primas en productos terminados
-- Registra los productos terminados
-- Solo puede transferir a Minoristas
-- Registra información sobre el proceso de transformación
-
-### 3. Minorista (Retailer)
-- Recibe productos terminados de las Fábricas
-- Distribuye productos a los consumidores finales
-- Solo puede transferir a Consumidores
-
-### 4. Consumidor (Consumer)
-- Punto final de la cadena de suministro
-- Recibe productos de los Minoristas
-- Puede verificar toda la trazabilidad del producto
-
-## Funcionalidades Clave
-
-### 1. Gestión de Identidad
-- Cada participante se identifica mediante certificados X.509
-- El MSP (Membership Service Provider) gestiona las identidades
-- Control de acceso basado en roles mediante políticas de endorsement
-- Autenticación mediante Fabric CA
-
-### 2. Registro de Activos
-- Materias Primas:
-  * Registros únicos para cada lote de materia prima
-  * Metadata asociada (origen, características, certificaciones)
-  * Trazabilidad desde el origen
-
-- Productos:
-  * Registros únicos para productos terminados
-  * Vinculación con registros de materias primas utilizadas
-  * Información del proceso de transformación
-
-### 3. Sistema de Transferencias
-- Transferencias direccionales según rol
-- Sistema de aceptación/rechazo de transferencias
-- Validación mediante políticas de endorsement
-
-### 4. Trazabilidad
-- Registro completo del ciclo de vida
-- Visualización de la cadena de custodia
-- Verificación de autenticidad
-- Historia completa de transferencias
-
-## Arquitectura Técnica
-
-### 1. Frontend
-- Framework: Next.js
-- Características:
-  * Paneles específicos por rol
-  * Integración con Fabric SDK
-
-### 2. Chaincode
-- Funcionalidades:
-  * Gestión de roles
-  * Registro de activos
-  * Sistema de transferencias
-  * Registro de eventos
-  * Validaciones de seguridad
-
-### 3. Red Blockchain
-- Red: Hyperledger Fabric
-- Organizaciones: Usar Fabric Samples
-- SDK: Fabric Gateway
-
-## Despliegue
-
-### 1. Red Fabric
-- Despliegue mediante Fabric Samples
-- Configuración de organizaciones y canales
-- Gestión de certificados
-- Monitoreo mediante Hyperledger Explorer
-
-### 2. Frontend
-- Plataforma: Vercel
-- Configuración de dominios
-- SSL/TLS
-- Monitoreo y logs
+# Start the chaincode server
+npm run start
+```
+---
+### Terminal #3 - Connect API to the Chaincode
+Inside `./api`:
+```
+npm i && npm run start
+```
+---
+### Terminal #4 - Verify Ping
+```
+curl http://localhost:5551/ping
+```
