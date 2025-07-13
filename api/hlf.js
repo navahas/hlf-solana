@@ -9,7 +9,10 @@ const __dirname = dirname(".");
 
 const ROOT = path.resolve(__dirname, "../fabric-samples/test-network")
 const BASE = `${ROOT}/organizations/peerOrganizations/org1.example.com`
-const CERT_USER = fs.readFileSync(`${BASE}/users/User1@org1.example.com/msp/signcerts/cert.pem`).toString()
+const certDir = `${BASE}/users/User1@org1.example.com/msp/signcerts/`
+const certFile = fs.readdirSync(certDir);
+const certFilePath = path.join(certDir, certFile[0]);
+const CERT_USER = fs.readFileSync(certFilePath).toString()
 const keyDir = `${BASE}/users/User1@org1.example.com/msp/keystore`;
 const keyFiles = fs.readdirSync(keyDir);
 const keyFilePath = path.join(keyDir, keyFiles[0]);
