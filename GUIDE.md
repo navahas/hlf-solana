@@ -40,6 +40,13 @@ Inside `./fabric-samples/test-network` directory, bring the network up:
 ```bash
 cd fabric-samples/test-network
 ./network.sh down
+```
+To start the network 
+```bash
+./network.sh up createChannel -c mychannel
+```
+To start the network with CA
+```bash
 ./network.sh up createChannel -ca -c mychannel
 ```
 
@@ -71,7 +78,7 @@ CONN_EOF
 Inside `./chaincode`
 1. Set environment variables (adjust `CHAINCODE_ID` based on previous deployment logs)
 ```bash
-export CHAINCODE_SERVER_ADDRESS=host.docker.internal:9998
+export CHAINCODE_SERVER_ADDRESS=host.docker.internal:9999
 export CHAINCODE_ID=basicts_1.0:$CHAINCODE_ID_HERE
 # E.G: export CHAINCODE_ID=basicts_1.0:c16a3518b8c6969ac9896e621bb42f74f9b31624ca8ea0508bdfda1daa8d090d
 ```
