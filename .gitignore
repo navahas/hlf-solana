@@ -45,3 +45,5 @@ logs/
 
 # Solana
 test-ledger/
+
+bin/

@@ -1,122 +1,82 @@
 # Hyperledger Fabric + Solana
+
+## Prerequisites
+
+* Docker & Docker Compose
+* Node.js and npm
+* Rust toolchain
+* Solana CLI – [Install Guide](https://docs.solana.com/cli/install-solana)
+* Anchor CLI
+    * Install via Cargo:
+        ```bash
+        cargo install --git [https://github.com/coral-xyz/anchor](https://github.com/coral-xyz/anchor) anchor-cli --locked
+        ```
+
 ## Architecture Overview
-```
-[User via CURL]
-     |
-     | /encryptMessage ------------------> [Fabric Chaincode]
-     |                                       - Compute DH shared secret
-     |                                       - Encrypt the message
-     |                                       - Return encrypted data
-     |
-     | --> [API Server] ------------------> [Anchor Solana Program]
-     |                                       - Write encrypted data to Solana account
-     |
-     | /decryptMessage ------------------> [API Server]
-     |                                       - Read encrypted data from Solana
-     |                                       - Decrypt using DH secret in Fabric
-     |                                       - Return plain message
-```
----
-## CAAS
-This guide provides step-by-step instructions for setting up and running the
-Hyperledger Fabric development environment.
+<details>
+<summary><strong>Mermaid Diagram</strong></summary>
 
-### Handy Hyperledger Fabric Resources
-For a deeper understanding of Hyperledger Fabric, refer to the official documentation:
-1. [Hyperledger Fabric Prerequisites](https://hyperledger-fabric.readthedocs.io/en/latest/prereqs.html)
-2. [Getting Started - Run Fabric](https://hyperledger-fabric.readthedocs.io/en/latest/getting_started_run_fabric.html)
+```mermaid
+sequenceDiagram
+  participant User
+  participant API
+  participant Solana
+  participant Fabric
 
-## Setting Up the Development Environment - Hyperledger Fabric
-### Prerequisites
-- Docker & Docker Compose
-Verify by running: 
-```
-docker --version
-docker compose version
-```
-- Docker Host Resolution
-Verify by running:
-```
-ping host.docker.internal
-```
-If you see `ping: cannot resolve host.docker.internal: Unknown host` go to the [HOST_RESOLUTION.md](./docs/HOST_RESOLUTION.md) section for more information.
-- Install Fabric Samples, Binaries and Docker Images:
+  User->>Fabric: registerUser(solanaAddress)
+  Fabric-->>User: DH Public Key
+
+  User->>API: submitVote(pollId, voteOption)
+
+  API->>Fabric: submitVote()
+  Note right of Fabric: Encrypt vote using DH\nshared secret (user, trusted party)
+  Fabric-->>API: Encrypted vote ID
+
+  API->>Solana: vote(pollId, option, hlfVoteId)
+  Solana-->>API: Confirm transaction
+
+  User->>API: countVotes(pollId)
+  API->>Fabric: countVotes()
+  Note right of Fabric: Decrypt and tally votes
+  Fabric-->>API: {OptionA: 1, OptionB: 1}
+
+  API-->>User: Results
+````
+
+\</details\>
+
+## Setup Instructions
+
+### 1. Set up `hlf` CLI (dev-friendly)
+
+Run from the root of the project:
+
 ```bash
-# To get the install script 
-# From: https://hyperledger-fabric.readthedocs.io/en/release-2.5/install.html
-curl -sSLO https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh && chmod +x install-fabric.sh
-
-# Run the script
-./install-fabric.sh docker samples binary
+mkdir -p ./bin
+ln -s "$PWD/hlf.sh" ./bin/hlf
+export PATH="$PWD/bin:$PATH"
 ```
 
-## Fabric Test Network
+You can now use `hlf` instead of `./hlf.sh`.
 
-### Terminal #1 - Starting the Fabric Test Network With Channel
-Inside `./fabric-samples/test-network` directory, bring the network up:
+To persist the path, add `export PATH="$PWD/bin:$PATH"` to your `.bashrc` or `.zshrc`.
+
+### 2. Start Hyperledger Fabric network
+
 ```bash
-cd fabric-samples/test-network
-./network.sh down
-```
-To start the network 
-```bash
-./network.sh up createChannel -c mychannel
-```
-To start the network with CA
-```bash
-./network.sh up createChannel -ca -c mychannel
+hlf start
 ```
 
-### Terminal #1 - Modify Connection Address & Deploy Chaincode
-1. Inside `./fabric-samples/test-network/scripts/deployCCAAS.sh` change the following:
-- Endorsment policy in line `18`:
+This will:
+  * Start the test network
+  * Deploy the chaincode (as-a-service)
+  * Output `CHAINCODE_ID` and `CHAINCODE_SERVER_ADDRESS` for development use
+
+### 3. Run the Solana program
+
 ```bash
-CC_END_POLICY="OR('Org1MSP.member')"
-```
-- Address in the line `89`:
-```bash
-cat > "$tempdir/src/connection.json" <<CONN_EOF
-{
-  "address": "host.docker.internal:9998",
-  "dial_timeout": "10s",
-  "tls_required": false
-}
-CONN_EOF
-```
-2. Deploy and extract `CHAINCODE_ID`
-```bash
-./network.sh deployCCAAS \
-  -ccn basicts \
-  -ccp ../asset-transfer-basic/chaincode-typescript \
-  -ccl typescript
-```
----
-### Terminal #2 - Deploying Chaincode (Smart-Contrac)
-Inside `./chaincode`
-1. Set environment variables (adjust `CHAINCODE_ID` based on previous deployment logs)
-```bash
-export CHAINCODE_SERVER_ADDRESS=host.docker.internal:9998
-export CHAINCODE_ID=basicts_1.0:$CHAINCODE_ID_HERE
-# E.G: export CHAINCODE_ID=basicts_1.0:c16a3518b8c6969ac9896e621bb42f74f9b31624ca8ea0508bdfda1daa8d090d
-```
-2. Manually Running the Chaincode Server
-Once deployed, you can run the chaincode as an external service:
-```bash
-# Install dependencies and build
+cd solana-program
 npm install
-npm run build
-
-# Start the chaincode server
-npm run start
-```
----
-### Terminal #3 - Connect API to the Chaincode
-Inside `./api`:
-```
-npm i && npm run start
-```
----
-### Terminal #4 - Verify Ping
-```
-curl http://localhost:5551/ping
+anchor build
+anchor test
 ```
