@@ -32,6 +32,10 @@ log_error() {
 }
 
 log_misc() {
-    _log "${PURPLE}[*]" "$1"
+    _log "${PURPLE}[~]" "$1"
+}
+
+log_msg() {
+    _log "[>]" "$1"
 }
 

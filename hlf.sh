@@ -24,6 +24,8 @@ function usage() {
     echo -e "${GREEN}Available commands:${NC}"
     echo -e "  ${GREEN}install${NC}   Install Fabric binaries, Docker images, and samples"
     echo -e "  ${GREEN}start${NC}     Start Hyperledger Fabric test network"
+    echo -e "  ${GREEN}deploy${NC}    Deploy the Fabric chaincode (typescript)"
+    echo -e "  ${GREEN}run${NC}       Run the Fabric chaincode (typescript)"
     echo -e "  ${GREEN}stop${NC}      Stop the test network"
     echo -e "  ${GREEN}clean${NC}     Remove chaincode containers"
     echo -e "  ${GREEN}help${NC}      Show this help message"
@@ -55,6 +57,16 @@ case "$COMMAND" in
         ensure_fabric_samples
         msg "Starting Hyperledger Fabric network..."
         ./scripts/start-hlf.sh
+        ;;
+    deploy)
+        ensure_fabric_samples
+        msg "Deploying Fabric chaincode..."
+        ./scripts/deploy-chaincode.sh
+        ;;
+    run)
+        ensure_fabric_samples
+        msg "Running Fabric chaincode..."
+        ./scripts/start-chaincode.sh
         ;;
     stop)
         ensure_fabric_samples
