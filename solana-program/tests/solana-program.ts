@@ -3,26 +3,29 @@ import { Program } from "@coral-xyz/anchor";
 import { SolanaProgram } from "../target/types/solana_program";
 import { connectFabric } from "./hlf";
 import { PublicKey, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import * as bs58 from "bs58";
+import nacl from 'tweetnacl';
 
 async function airdropSol(provider: anchor.AnchorProvider, pubkey: anchor.web3.PublicKey, sol = 2) {
     try {
         const connection = provider.connection;
         const signature = await connection.requestAirdrop(pubkey, sol * LAMPORTS_PER_SOL);
-
         const latestBlockhash = await connection.getLatestBlockhash();
-
-        await connection.confirmTransaction(
-            {
-                signature,
-                blockhash: latestBlockhash.blockhash,
-                lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-            },
-            "confirmed"
-        );
+        await connection.confirmTransaction({
+            signature,
+            blockhash: latestBlockhash.blockhash,
+            lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        }, "confirmed");
     } catch (error) {
         console.error("Airdrop failed:", error);
         throw error;
     }
+}
+
+function signMessage(keypair: Keypair, message: string): string {
+    const messageBytes = new TextEncoder().encode(message);
+    const signature = nacl.sign.detached(messageBytes, keypair.secretKey);
+    return bs58.encode(signature);
 }
 
 function hlfToJson(result: Uint8Array<ArrayBufferLike>) {
@@ -38,8 +41,269 @@ describe("Hyperledger Fabric Connection", () => {
     it("HLF PingContract", async () => {
         const pingContract = await connectFabric('PingContract');
         const result = await pingContract.submitTransaction('ping');
-        const pong = hlfToJson(result);
-        console.log(pong);
+        console.log(hlfToJson(result));
+    });
+});
+
+describe("Signature Verification Tests", () => {
+    const provider = anchor.AnchorProvider.env();
+    anchor.setProvider(provider);
+    let votingContract: any;
+
+    before(async () => {
+        votingContract = await connectFabric('TrustedVotingContract');
+        await votingContract.submitTransaction('initializeTrustedParty');
+    });
+
+    it("Should reject invalid signature on user registration", async () => {
+        const user = Keypair.generate();
+        const message = "register-user";
+        const wrongSignature = "invalid-signature";
+
+        try {
+            await votingContract.submitTransaction(
+                'registerUser',
+                user.publicKey.toString(),
+                message,
+                wrongSignature
+            );
+            throw new Error("Should have failed");
+        } catch (error) {
+            console.log("✓ Correctly rejected invalid signature:", error.message);
+        }
+    });
+
+    it("Should reject registration with wrong signer", async () => {
+        const user1 = Keypair.generate();
+        const user2 = Keypair.generate();
+        const message = "register-user";
+        const signature = signMessage(user2, message); // Wrong signer
+
+        try {
+            await votingContract.submitTransaction(
+                'registerUser',
+                user1.publicKey.toString(),
+                message,
+                signature
+            );
+            throw new Error("Should have failed");
+        } catch (error) {
+            console.log("✓ Correctly rejected wrong signer:", error.message);
+        }
+    });
+
+    it("Should reject duplicate user registration", async () => {
+        const user = Keypair.generate();
+        const message = "register-user";
+        const signature = signMessage(user, message);
+
+        // First registration should succeed
+        const result1 = await votingContract.submitTransaction(
+            'registerUser',
+            user.publicKey.toString(),
+            message,
+            signature
+        );
+        console.log("First registration:", hlfToJson(result1));
+
+        // Second registration should fail
+        try {
+            await votingContract.submitTransaction(
+                'registerUser',
+                user.publicKey.toString(),
+                message,
+                signature
+            );
+            throw new Error("Should have failed");
+        } catch (error) {
+            console.log("✓ Correctly rejected duplicate registration:", error.message);
+        }
+    });
+
+    it("Should reject invalid vote signature", async () => {
+        const voter = Keypair.generate();
+        const creator = Keypair.generate();
+
+        // Register user
+        const regMessage = "register-user";
+        const regSignature = signMessage(voter, regMessage);
+        await votingContract.submitTransaction(
+            'registerUser',
+            voter.publicKey.toString(),
+            regMessage,
+            regSignature
+        );
+
+        // Create poll
+        const pollId = "test-poll-signature";
+        const options = ["Option A", "Option B"];
+        await votingContract.submitTransaction(
+            'createPoll',
+            pollId,
+            creator.publicKey.toString(),
+            JSON.stringify(options)
+        );
+
+        // Try to vote with invalid signature
+        const voteMessage = "vote-option-a";
+        const invalidSignature = "invalid-signature";
+
+        try {
+            await votingContract.submitTransaction(
+                'submitVote',
+                pollId,
+                voter.publicKey.toString(),
+                "Option A",
+                voteMessage,
+                invalidSignature
+            );
+            throw new Error("Should have failed");
+        } catch (error) {
+            console.log("✓ Correctly rejected invalid vote signature:", error.message);
+        }
+    });
+
+    it("Should reject vote from wrong signer", async () => {
+        const voter1 = Keypair.generate();
+        const voter2 = Keypair.generate();
+        const creator = Keypair.generate();
+
+        // Register users
+        const regMessage = "register-user";
+        await votingContract.submitTransaction(
+            'registerUser',
+            voter1.publicKey.toString(),
+            regMessage,
+            signMessage(voter1, regMessage)
+        );
+        await votingContract.submitTransaction(
+            'registerUser',
+            voter2.publicKey.toString(),
+            regMessage,
+            signMessage(voter2, regMessage)
+        );
+
+        // Create poll
+        const pollId = "test-poll-wrong-signer";
+        const options = ["Option A", "Option B"];
+        await votingContract.submitTransaction(
+            'createPoll',
+            pollId,
+            creator.publicKey.toString(),
+            JSON.stringify(options)
+        );
+
+        // Try to vote as voter1 but with voter2's signature
+        const voteMessage = "vote-option-a";
+        const wrongSignature = signMessage(voter2, voteMessage);
+
+        try {
+            await votingContract.submitTransaction(
+                'submitVote',
+                pollId,
+                voter1.publicKey.toString(),
+                "Option A",
+                voteMessage,
+                wrongSignature
+            );
+            throw new Error("Should have failed");
+        } catch (error) {
+            console.log("✓ Correctly rejected wrong signer for vote:", error.message);
+        }
+    });
+
+    it("Should reject duplicate votes", async () => {
+        const voter = Keypair.generate();
+        const creator = Keypair.generate();
+
+        // Register user
+        const regMessage = "register-user";
+        await votingContract.submitTransaction(
+            'registerUser',
+            voter.publicKey.toString(),
+            regMessage,
+            signMessage(voter, regMessage)
+        );
+
+        // Create poll
+        const pollId = "test-poll-duplicate";
+        const options = ["Option A", "Option B"];
+        await votingContract.submitTransaction(
+            'createPoll',
+            pollId,
+            creator.publicKey.toString(),
+            JSON.stringify(options)
+        );
+
+        // First vote should succeed
+        const voteMessage = "vote-option-a";
+        const signature = signMessage(voter, voteMessage);
+        const result1 = await votingContract.submitTransaction(
+            'submitVote',
+            pollId,
+            voter.publicKey.toString(),
+            "Option A",
+            voteMessage,
+            signature
+        );
+        console.log("First vote:", hlfToJson(result1));
+
+        // Second vote should fail
+        try {
+            await votingContract.submitTransaction(
+                'submitVote',
+                pollId,
+                voter.publicKey.toString(),
+                "Option B",
+                voteMessage,
+                signature
+            );
+            throw new Error("Should have failed");
+        } catch (error) {
+            console.log("✓ Correctly rejected duplicate vote:", error.message);
+        }
+    });
+
+    it("Should reject vote for invalid option", async () => {
+        const voter = Keypair.generate();
+        const creator = Keypair.generate();
+
+        // Register user
+        const regMessage = "register-user";
+        await votingContract.submitTransaction(
+            'registerUser',
+            voter.publicKey.toString(),
+            regMessage,
+            signMessage(voter, regMessage)
+        );
+
+        // Create poll
+        const pollId = "test-poll-invalid-option";
+        const options = ["Option A", "Option B"];
+        await votingContract.submitTransaction(
+            'createPoll',
+            pollId,
+            creator.publicKey.toString(),
+            JSON.stringify(options)
+        );
+
+        // Try to vote for invalid option
+        const voteMessage = "vote-option-c";
+        const signature = signMessage(voter, voteMessage);
+
+        try {
+            await votingContract.submitTransaction(
+                'submitVote',
+                pollId,
+                voter.publicKey.toString(),
+                "Option C",
+                voteMessage,
+                signature
+            );
+            throw new Error("Should have failed");
+        } catch (error) {
+            console.log("✓ Correctly rejected invalid vote option:", error.message);
+        }
     });
 });
 
@@ -49,17 +313,10 @@ describe("Integrated Voting System", () => {
     const program = anchor.workspace.solanaProgram as Program<SolanaProgram>;
 
     let votingContract: any;
-    let trustedPartyPublicKey: string;
 
     before(async () => {
-        // Connect to HLF chaincode
         votingContract = await connectFabric('TrustedVotingContract');
-
-        // Initialize trusted party
-        const initResult = await votingContract.submitTransaction('initializeTrustedParty');
-        const initData = hlfToJson(initResult);
-        trustedPartyPublicKey = initData.publicKey;
-        console.log("Trusted party initialized:", trustedPartyPublicKey);
+        await votingContract.submitTransaction('initializeTrustedParty');
     });
 
     it("Initialize Solana program", async () => {
@@ -77,9 +334,20 @@ describe("Integrated Voting System", () => {
         await airdropSol(provider, voter1.publicKey, 2);
         await airdropSol(provider, voter2.publicKey, 2);
 
-        // Register users in HLF
-        const user1Result = await votingContract.submitTransaction('registerUser', voter1.publicKey.toString());
-        const user2Result = await votingContract.submitTransaction('registerUser', voter2.publicKey.toString());
+        // Register users in HLF with signatures
+        const regMessage = "register-user";
+        const user1Result = await votingContract.submitTransaction(
+            'registerUser',
+            voter1.publicKey.toString(),
+            regMessage,
+            signMessage(voter1, regMessage)
+        );
+        const user2Result = await votingContract.submitTransaction(
+            'registerUser',
+            voter2.publicKey.toString(),
+            regMessage,
+            signMessage(voter2, regMessage)
+        );
 
         console.log("User 1 registered:", hlfToJson(user1Result));
         console.log("User 2 registered:", hlfToJson(user2Result));
@@ -119,12 +387,16 @@ describe("Integrated Voting System", () => {
         const vote1Option = "Option A";
         const vote2Option = "Option B";
 
-        // Vote 1: Submit encrypted vote to HLF
+        // Vote 1: Submit encrypted vote to HLF with signature
+        const vote1Message = "vote-option-a";
+        const vote1Signature = signMessage(voter1, vote1Message);
         const vote1Result = await votingContract.submitTransaction(
             'submitVote',
             hlfPollId,
             voter1.publicKey.toString(),
-            vote1Option
+            vote1Option,
+            vote1Message,
+            vote1Signature
         );
         const vote1Data = hlfToJson(vote1Result);
         console.log("Vote 1 submitted to HLF:", vote1Data);
@@ -146,12 +418,16 @@ describe("Integrated Voting System", () => {
         .signers([voter1])
         .rpc();
 
-        // Vote 2: Submit encrypted vote to HLF
+        // Vote 2: Submit encrypted vote to HLF with signature
+        const vote2Message = "vote-option-b";
+        const vote2Signature = signMessage(voter2, vote2Message);
         const vote2Result = await votingContract.submitTransaction(
             'submitVote',
             hlfPollId,
             voter2.publicKey.toString(),
-            vote2Option
+            vote2Option,
+            vote2Message,
+            vote2Signature
         );
         const vote2Data = hlfToJson(vote2Result);
         console.log("Vote 2 submitted to HLF:", vote2Data);

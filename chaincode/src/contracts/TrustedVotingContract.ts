@@ -1,10 +1,13 @@
 import { Context, Contract, Info, Returns, Transaction } from 'fabric-contract-api';
 import * as crypto from 'crypto';
+import { PublicKey } from '@solana/web3.js';
+import * as bs58 from 'bs58';
+import nacl from 'tweetnacl';
 
 interface DHUser {
     id: string;
     publicKey: string;
-    // Remove privateKey - not stored for users
+    // privateKey - not stored for users
 }
 
 interface EncryptedMessage {
@@ -70,7 +73,6 @@ export class TrustedVotingContract extends Contract {
         const key = crypto.createHash('sha256').update(sharedSecret).digest();
         const fullData = Buffer.from(encryptedMessage.encryptedData, 'hex');
 
-        // Extract iv, authTag, and encrypted data
         const iv = fullData.subarray(0, 16);
         const authTag = fullData.subarray(16, 32);
         const encryptedData = fullData.subarray(32);
@@ -100,20 +102,38 @@ export class TrustedVotingContract extends Contract {
         return JSON.stringify({ publicKey });
     }
 
-    // Register a user (Solana address)
+    // Register a user (Solana address) with signature verification
     @Transaction()
     @Returns('string')
-    public async registerUser(ctx: Context, solanaAddress: string): Promise<string> {
+    public async registerUser(
+        ctx: Context,
+        solanaAddress: string,
+        message: string,
+        signature: string
+    ): Promise<string> {
+        if (!this.verifySignature(solanaAddress, message, signature)) {
+            throw new Error('Invalid signature for user registration');
+        }
+
+        const existingUser = await ctx.stub.getState(`user:${solanaAddress}`);
+        if (existingUser && existingUser.length > 0) {
+            throw new Error(`User ${solanaAddress} already registered`);
+        }
+
         const { publicKey } = this.generateDHKeyPair();
         const user: DHUser = { id: solanaAddress, publicKey };
         await ctx.stub.putState(`user:${solanaAddress}`, Buffer.from(JSON.stringify(user)));
         return JSON.stringify({ id: solanaAddress, publicKey });
     }
 
-    // Create a poll
     @Transaction()
     @Returns('string')
-    public async createPoll(ctx: Context, pollId: string, creator: string, options: string): Promise<string> {
+    public async createPoll(
+        ctx: Context,
+        pollId: string,
+        creator: string,
+        options: string
+    ): Promise<string> {
         const optionsArray = JSON.parse(options);
         const poll: Poll = {
             id: pollId,
@@ -126,11 +146,32 @@ export class TrustedVotingContract extends Contract {
         return JSON.stringify({ pollId, options: optionsArray });
     }
 
-    // Submit encrypted vote
+    // encrypted vote
     @Transaction()
     @Returns('string')
-    public async submitVote(ctx: Context, pollId: string, voterAddress: string, voteOption: string): Promise<string> {
-        // Get user and trusted party
+    public async submitVote(
+        ctx: Context,
+        pollId: string,
+        voterAddress: string,
+        voteOption: string,
+        message: string,
+        signature: string
+    ): Promise<string> {
+        if (!this.verifySignature(voterAddress, message, signature)) {
+            throw new Error('Invalid signature for vote submission');
+        }
+
+        // !duplicate vote
+        const existingVote = await ctx.stub.getState(`vote:${pollId}:${voterAddress}`);
+        if (existingVote && existingVote.length > 0) {
+            throw new Error(`User ${voterAddress} has already voted in poll ${pollId}`);
+        }
+
+        const poll = await this.getPoll(ctx, pollId);
+        if (!poll.options.includes(voteOption)) {
+            throw new Error(`Invalid vote option: ${voteOption}`);
+        }
+
         const user = await this.getUser(ctx, voterAddress);
         const trustedParty = await this.getTrustedParty(ctx);
 
@@ -138,7 +179,6 @@ export class TrustedVotingContract extends Contract {
         const sharedSecret = this.computeSharedSecret(trustedParty.privateKey, user.publicKey);
         const encryptedVote = this.encrypt(voteOption, sharedSecret);
 
-        // Store the vote
         const vote: Vote = {
             pollId,
             voterAddress,
@@ -161,7 +201,7 @@ export class TrustedVotingContract extends Contract {
         const iterator = await ctx.stub.getStateByPartialCompositeKey('vote', [pollId]);
         const votes: { [option: string]: number } = {};
 
-        // Initialize vote counts
+        // vote counts
         poll.options.forEach(option => {
             votes[option] = 0;
         });
@@ -170,7 +210,7 @@ export class TrustedVotingContract extends Contract {
         while (!result.done) {
             const vote = JSON.parse(result.value.value.toString()) as Vote;
 
-            // Get user to decrypt vote
+            // user to decrypt vote
             const user = await this.getUser(ctx, vote.voterAddress);
             const sharedSecret = this.computeSharedSecret(trustedParty.privateKey, user.publicKey);
 
@@ -187,12 +227,23 @@ export class TrustedVotingContract extends Contract {
         return JSON.stringify({ pollId, results: votes });
     }
 
-    // Get trusted party public key
     @Transaction(false)
     @Returns('string')
     public async getTrustedPartyPublicKey(ctx: Context): Promise<string> {
         const trustedParty = await this.getTrustedParty(ctx);
         return JSON.stringify({ publicKey: trustedParty.publicKey });
+    }
+
+    private verifySignature(address: string, message: string, signature: string): boolean {
+        try {
+            const publicKey = new PublicKey(address);
+            const messageBytes = new TextEncoder().encode(message);
+            const signatureBytes = bs58.decode(signature);
+
+            return nacl.sign.detached.verify(messageBytes, signatureBytes, publicKey.toBytes());
+        } catch (error) {
+            return false;
+        }
     }
 
     private async getUser(ctx: Context, id: string): Promise<DHUser> {
