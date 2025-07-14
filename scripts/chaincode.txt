@@ -1,2 +1,0 @@
-export CHAINCODE_ID="basicts_1.0:d8f3df08f8e01df6f88229b5d9b9a72d5d536c8b0e5b31b3f6840e45aba15e2b"
-export CHAINCODE_SERVER_ADDRESS="host.docker.internal:9998"

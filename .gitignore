@@ -47,3 +47,4 @@ logs/
 test-ledger/
 
 bin/
+scripts/chaincode.txt

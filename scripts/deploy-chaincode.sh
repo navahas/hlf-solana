@@ -43,5 +43,5 @@ log_success "Chaincode deployed and built."
 
 echo ""
 log_msg "Start the chaincode"
-log_msg "cd chaincode && npm run start"
+log_msg "hlf run"
 echo ""

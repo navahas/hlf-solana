@@ -18,6 +18,9 @@ msg() {
 
 COMMAND=$1
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
 function usage() {
     echo -e "${YELLOW}Usage:${NC} ./hlf.sh [command]"
     echo ""
@@ -56,27 +59,27 @@ case "$COMMAND" in
     start)
         ensure_fabric_samples
         msg "Starting Hyperledger Fabric network..."
-        ./scripts/start-hlf.sh
+        "$PROJECT_ROOT/scripts/start-hlf.sh"
         ;;
     deploy)
         ensure_fabric_samples
         msg "Deploying Fabric chaincode..."
-        ./scripts/deploy-chaincode.sh
+        "$PROJECT_ROOT/scripts/deploy-chaincode.sh"
         ;;
     run)
         ensure_fabric_samples
         msg "Running Fabric chaincode..."
-        ./scripts/start-chaincode.sh
+        "$PROJECT_ROOT/scripts/run-chaincode.sh"
         ;;
     stop)
         ensure_fabric_samples
         msg "Stopping Hyperledger Fabric network..."
-        ./scripts/stop-hlf.sh
+        "$PROJECT_ROOT/scripts/stop-hlf.sh"
         ;;
     clean)
         ensure_fabric_samples
         msg "Cleaning up chaincode containers..."
-        ./scripts/clear-cc-containers.sh
+        "$PROJECT_ROOT/scripts/clear-cc-containers.sh"
         ;;
     help|"")
         usage
