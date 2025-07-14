@@ -48,7 +48,7 @@ To get the project up and running quickly, follow these steps in two separate te
 mkdir -p ./bin
 ln -s "$PWD/hlf.sh" ./bin/hlf
 export PATH="$PWD/bin:$PATH"
-hlf install && hlf start && hlf deploy && run
+hlf install && hlf start && hlf deploy && hlf run
 ```
 - Terminal 2 (Solana Program)
 ```bash
@@ -56,8 +56,11 @@ cd solana-program
 npm install
 anchor build
 anchor test
+```
 
-## Cleanup
+- Extra: Cleanup & HLF help (Terminal 1)
+```bash
+hlf help
 hlf stop
 ```
 --- 
@@ -101,10 +104,3 @@ npm install
 anchor build
 anchor test
 ```
-
-- Clean Environment
-To gracefully shut down the network and clean up any leftover chaincode containers:
-```bash
-hlf stop
-```
-_Stops Fabric network and removes chaincode containers._
