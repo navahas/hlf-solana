@@ -43,14 +43,15 @@ sequenceDiagram
 
 ## QuickStart
 To get the project up and running quickly, follow these steps in two separate terminal windows.
+- Terminal 1 (Hyperledger Fabric & Chaincode)
 ```bash
-### Terminal 1 (Hyperledger Fabric & Chaincode)
 mkdir -p ./bin
 ln -s "$PWD/hlf.sh" ./bin/hlf
 export PATH="$PWD/bin:$PATH"
 hlf install && hlf start && hlf deploy && run
-
-### Terminal 2 (Solana Program)
+```
+- Terminal 2 (Solana Program)
+```bash
 cd solana-program
 npm install
 anchor build
