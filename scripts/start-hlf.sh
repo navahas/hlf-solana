@@ -4,11 +4,12 @@ set -e
 
 source "$(dirname "$0")/log.sh"
 
-./scripts/clear-cc-containers.sh
+# ./scripts/clear-cc-containers.sh
 
 cd ./fabric-samples/test-network
 
-log_info "Shutting down existing network..."
+# log_info "Shutting down existing network..."
+# Ensure a clean start shutting down previous containers
 ./network.sh down &> /dev/null
 sleep 2
 

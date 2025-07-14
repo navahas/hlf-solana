@@ -4,6 +4,13 @@ set -e
 
 source "$(dirname "$0")/log.sh"
 
+DEPLOY_SCRIPT="./fabric-samples/test-network/scripts/deployCCAAS.sh"
+log_info "Ensuring deployCCAAS.sh patch..."
+
+# Patch endorsement policy (line 18) and chaincode address (line 89)
+sed -i '' 's|^CC_END_POLICY=.*|CC_END_POLICY="OR('\''Org1MSP.member'\'')"|' "$DEPLOY_SCRIPT"
+sed -i '' 's|"address": ".*"|"address": "host.docker.internal:9998"|' "$DEPLOY_SCRIPT"
+
 log_info "Deploying chaincode..."
 
 cd ./fabric-samples/test-network
@@ -15,7 +22,10 @@ sleep 2
 
 cd ../..
 
-CHAINCODE_ID=$(docker logs peer0.org1.example.com 2>&1 | grep "Successfully installed chaincode with package ID" | awk -F"'" '{print $2}')
+CHAINCODE_ID=$(docker logs peer0.org1.example.com 2>&1 \
+    | grep "Successfully installed chaincode with package ID" \
+    | tail -n1 \
+    | awk -F"'" '{print $2}')
 CHAINCODE_SERVER_ADDRESS="host.docker.internal:9998"
 
 if [ -z "$CHAINCODE_ID" ]; then
@@ -26,13 +36,9 @@ fi
 log_misc "CHAINCODE_ID: $CHAINCODE_ID"
 log_misc "CHAINCODE_SERVER_ADDRESS: $CHAINCODE_SERVER_ADDRESS"
 
-# Export for current shell
-export CHAINCODE_ID
-export CHAINCODE_SERVER_ADDRESS
-
-CHAINCODE_ENV_FILE="./scripts/chaincode.txt"
-echo "export CHAINCODE_ID=\"$CHAINCODE_ID\"" > "$CHAINCODE_ENV_FILE"
-echo "export CHAINCODE_SERVER_ADDRESS=\"$CHAINCODE_SERVER_ADDRESS\"" >> "$CHAINCODE_ENV_FILE"
+CHAINCODE_ENV_FILE="./chaincode/.env"
+echo "CHAINCODE_ID=\"$CHAINCODE_ID\"" > "$CHAINCODE_ENV_FILE"
+echo "CHAINCODE_SERVER_ADDRESS=\"$CHAINCODE_SERVER_ADDRESS\"" >> "$CHAINCODE_ENV_FILE"
 log_info "Chaincode environment written to $CHAINCODE_ENV_FILE"
 
 cd ./chaincode
@@ -41,7 +47,5 @@ npm build &> /dev/null
 
 log_success "Chaincode deployed and built."
 
-echo ""
 log_msg "Start the chaincode"
 log_msg "hlf run"
-echo ""
