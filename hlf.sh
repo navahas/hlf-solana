@@ -31,8 +31,15 @@ function usage() {
 }
 
 function ensure_root_dir() {
-    if [[ ! -d "fabric-samples" || ! -d "solana-program" || ! -f "install-fabric.sh" ]]; then
+    if [[ ! -d "solana-program" || ! -f "install-fabric.sh" ]]; then
         echo -e "${RED}[!] Please run this script from the root of the project (hlf-solana/).${NC}"
+        exit 1
+    fi
+}
+
+function ensure_fabric_samples() {
+    if [[ ! -d "fabric-samples" ]]; then
+        echo -e "${RED}[!] Please run the install option to set up hyperledger fabric environmnet (fabric-samples/).${NC}"
         exit 1
     fi
 }
@@ -45,14 +52,17 @@ case "$COMMAND" in
         ./install-fabric.sh
         ;;
     start)
+        ensure_fabric_samples
         msg "Starting Hyperledger Fabric network..."
         ./scripts/start-hlf.sh
         ;;
     stop)
+        ensure_fabric_samples
         msg "Stopping Hyperledger Fabric network..."
         ./scripts/stop-hlf.sh
         ;;
     clean)
+        ensure_fabric_samples
         msg "Cleaning up chaincode containers..."
         ./scripts/clear-cc-containers.sh
         ;;

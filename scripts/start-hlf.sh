@@ -13,7 +13,7 @@ log_info "Shutting down existing network..."
 sleep 2
 
 log_warn "Starting network..."
-./network.sh up createChannel -ca -c mychannel &> /dev/null
+./network.sh up createChannel -c mychannel &> /dev/null
 sleep 3
 
 log_warn "Verifying host resolution..."
@@ -35,8 +35,8 @@ log_warn "Deploying chaincode..."
     CHAINCODE_ID=$(docker logs peer0.org1.example.com 2>&1 | grep "Successfully installed chaincode with package ID" | awk -F"'" '{print $2}')
     CHAINCODE_SERVER_ADDRESS="host.docker.internal:9998"
 
-    log_misc "[*] CHAINCODE_ID: $CHAINCODE_ID"
-    log_misc "[*] CHAINCODE_SERVER_ADDRESS: $CHAINCODE_SERVER_ADDRESS"
+    log_misc "CHAINCODE_ID: $CHAINCODE_ID"
+    log_misc "CHAINCODE_SERVER_ADDRESS: $CHAINCODE_SERVER_ADDRESS"
 
 # Export for current shell
 export CHAINCODE_ID

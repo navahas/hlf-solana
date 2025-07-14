@@ -46,7 +46,6 @@ sequenceDiagram
 ### 1. Set up `hlf` CLI (dev-friendly)
 
 Run from the root of the project:
-
 ```bash
 mkdir -p ./bin
 ln -s "$PWD/hlf.sh" ./bin/hlf
@@ -55,18 +54,24 @@ export PATH="$PWD/bin:$PATH"
 
 You can now use `hlf` instead of `./hlf.sh`.
 
-To persist the path, add `export PATH="$PWD/bin:$PATH"` to your `.bashrc` or `.zshrc`.
+To see all the options run `hlf help`
 
-### 2. Start Hyperledger Fabric network
-
+### 2. Run Hyperledger Fabric Developer Environment
 ```bash
+hlf install
 hlf start
 ```
-
 This will:
-  * Start the test network
-  * Deploy the chaincode (as-a-service)
-  * Output `CHAINCODE_ID` and `CHAINCODE_SERVER_ADDRESS` for development use
+- Install fabric `docker images`, `binaries` and clone `fabric-samples` repo.
+- Start the test network
+- Deploy the chaincode (as-a-service)
+- Output `CHAINCODE_ID` and `CHAINCODE_SERVER_ADDRESS` for development use
+
+Then:
+```bash
+cd chaincode
+npm run build && npm run start
+```
 
 ### 3. Run the Solana program
 
