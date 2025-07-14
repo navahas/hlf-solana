@@ -9,6 +9,24 @@
 * Anchor CLI
 
 ## Architecture Overview
+The key insight is that **Fabric handles encryption/decryption and signature verification**, while Solana provides transparent vote recording and state management.
+```
+┌─────────────────┐      ┌─────────────────┐     ┌─────────────────┐
+│     User        │      │   Fabric HLF    │     │     Solana      │
+│  (Solana Key)   │      │   (Chaincode)   │     │    (Program)    │
+└─────────────────┘      └─────────────────┘     └─────────────────┘
+         │                         │                        │
+         │─── register(sig) —─────▶│                        │
+         │◄── DH pubkey ─—─────────│                        │
+         │                         │                        │
+         │─── vote(option,sig) ───▶│                        │
+         │                         │─── encrypted vote ────▶│
+         │                         │                        │
+         │─── count() ────────────▶│                        │
+         │◄── results ─────────────│                        │
+
+Flow: Register → Vote (encrypted in HLF) → Record (in Solana) → Count (decrypt in HLF)
+```
 
 <details>
 <summary><strong>Mermaid Diagram</strong></summary>
@@ -19,24 +37,28 @@ sequenceDiagram
   participant API
   participant Solana
   participant Fabric
-
-  User->>Fabric: registerUser(solanaAddress)
-  Fabric-->>User: DH Public Key
-
+  
+  Note over Fabric: initializeTrustedParty() creates DH keypair
+  
+  User->>Fabric: registerUser(solanaAddress, message, signature)
+  Note right of Fabric: Verify signature<br/>Generate user DH keypair
+  Fabric-->>User: User DH Public Key
+  
+  User->>API: createPoll(pollId, options)
+  API->>Fabric: createPoll(hlfPollId, creator, options)
+  API->>Solana: createPoll(pollId, options, hlfPollId)
+  
   User->>API: submitVote(pollId, voteOption)
-
-  API->>Fabric: submitVote()
-  Note right of Fabric: Encrypt vote using DH\nshared secret (user, trusted party)
-  Fabric-->>API: Encrypted vote ID
-
+  API->>Fabric: submitVote(hlfPollId, voterAddress, voteOption, message, signature)
+  Note right of Fabric: Verify signature<br/>Check duplicates<br/>Encrypt vote with shared secret<br/>(user pubkey + trusted party privkey)
+  Fabric-->>API: voteId
   API->>Solana: vote(pollId, option, hlfVoteId)
   Solana-->>API: Confirm transaction
-
+  
   User->>API: countVotes(pollId)
-  API->>Fabric: countVotes()
-  Note right of Fabric: Decrypt and tally votes
-  Fabric-->>API: {OptionA: 1, OptionB: 1}
-
+  API->>Fabric: countVotes(hlfPollId)
+  Note right of Fabric: Decrypt votes using shared secrets<br/>Tally results
+  Fabric-->>API: {OptionA: count, OptionB: count}
   API-->>User: Results
 ````
 </details>
