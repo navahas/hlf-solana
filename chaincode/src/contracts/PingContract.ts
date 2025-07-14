@@ -5,18 +5,25 @@ export class PingContract extends Contract {
     
     @Transaction()
     @Returns('string')
-    public async ping(ctx: Context): Promise<string> {
+    public async ping(_ctx: Context): Promise<string> {
         return 'Pong!';
-    }
-    @Transaction()
-    @Returns('string')
-    public async ping2(ctx: Context, name: string): Promise<string> {
-        return `Pong ${name}`;
     }
 
     @Transaction()
     @Returns('string')
-    public async pingHola(ctx: Context, name: string): Promise<string> {
-        return `HOLA ${name}`;
+    public async pingParam(_ctx: Context, name: string): Promise<string> {
+        return `Pong ${name}`;
+    }
+
+    @Transaction()
+    @Returns('number')
+    public async ping2(_ctx: Context): Promise<number> {
+        return 111;
+    }
+
+    @Transaction()
+    @Returns('boolean')
+    public async pingBool(_ctx: Context): Promise<boolean> {
+        return true;
     }
 } 
