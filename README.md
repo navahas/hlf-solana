@@ -7,12 +7,9 @@
 * Rust toolchain
 * Solana CLI – [Install Guide](https://docs.solana.com/cli/install-solana)
 * Anchor CLI
-    * Install via Cargo:
-        ```bash
-        cargo install --git [https://github.com/coral-xyz/anchor](https://github.com/coral-xyz/anchor) anchor-cli --locked
-        ```
 
 ## Architecture Overview
+<details>
 <summary><strong>Mermaid Diagram</strong></summary>
 
 ```mermaid
@@ -42,6 +39,9 @@ sequenceDiagram
   API-->>User: Results
 ````
 
+\</details\>
+
+---
 ## Setup Instructions
 
 ### 1. Set up `hlf` CLI (dev-friendly)
