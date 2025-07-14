@@ -5,7 +5,9 @@
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.31.1"
+    "@coral-xyz/anchor": "^0.31.1",
+    "@grpc/grpc-js": "^1.11.1",
+    "@hyperledger/fabric-gateway": "^1.5.1"
   },
   "devDependencies": {
     "chai": "^4.3.4",
