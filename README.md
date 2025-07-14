@@ -13,7 +13,6 @@
         ```
 
 ## Architecture Overview
-<details>
 <summary><strong>Mermaid Diagram</strong></summary>
 
 ```mermaid
@@ -42,8 +41,6 @@ sequenceDiagram
 
   API-->>User: Results
 ````
-
-\</details\>
 
 ## Setup Instructions
 
