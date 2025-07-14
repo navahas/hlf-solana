@@ -42,3 +42,6 @@ logs/
 
 # Cache
 .cache/
+
+# Solana
+test-ledger/
