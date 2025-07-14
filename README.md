@@ -5,7 +5,7 @@
 * Docker & Docker Compose
 * Node.js and npm
 * Rust toolchain
-* Solana CLI – [Install Guide](https://docs.solana.com/cli/install-solana)
+* Solana CLI
 * Anchor CLI
 
 ## Architecture Overview

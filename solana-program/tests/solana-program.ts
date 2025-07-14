@@ -4,7 +4,7 @@ import { SolanaProgram } from "../target/types/solana_program";
 import { connectFabric } from "./hlf";
 import { PublicKey, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
-export async function airdropSol(provider: anchor.AnchorProvider, pubkey: anchor.web3.PublicKey, sol = 2) {
+async function airdropSol(provider: anchor.AnchorProvider, pubkey: anchor.web3.PublicKey, sol = 2) {
     try {
         const connection = provider.connection;
         const signature = await connection.requestAirdrop(pubkey, sol * LAMPORTS_PER_SOL);
@@ -25,11 +25,16 @@ export async function airdropSol(provider: anchor.AnchorProvider, pubkey: anchor
     }
 }
 
-describe("Hyperledger Fabric Connection", () => {
-    function hlfToJson(result: Uint8Array<ArrayBufferLike>) {
-        return Buffer.from(result).toString('utf-8');
+function hlfToJson(result: Uint8Array<ArrayBufferLike>) {
+    const data = Buffer.from(result).toString('utf-8');
+    try {
+        return JSON.parse(data);
+    } catch(e) {
+        return data;
     }
+}
 
+describe("Hyperledger Fabric Connection", () => {
     it("HLF PingContract", async () => {
         const pingContract = await connectFabric('PingContract');
         const result = await pingContract.submitTransaction('ping');
@@ -45,10 +50,6 @@ describe("Integrated Voting System", () => {
 
     let votingContract: any;
     let trustedPartyPublicKey: string;
-
-    function hlfToJson(result: Uint8Array<ArrayBufferLike>) {
-        return JSON.parse(Buffer.from(result).toString('utf-8'));
-    }
 
     before(async () => {
         // Connect to HLF chaincode
