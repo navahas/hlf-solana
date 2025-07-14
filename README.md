@@ -9,6 +9,7 @@
 * Anchor CLI
 
 ## Architecture Overview
+
 <details>
 <summary><strong>Mermaid Diagram</strong></summary>
 
@@ -38,10 +39,8 @@ sequenceDiagram
 
   API-->>User: Results
 ````
+</details>
 
-\</details\>
-
----
 ## Setup Instructions
 
 ### 1. Set up `hlf` CLI (dev-friendly)
