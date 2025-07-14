@@ -45,18 +45,23 @@ sequenceDiagram
 
 ### 1. Set up `hlf` CLI (dev-friendly)
 
-Run from the root of the project:
+The main script for interacing with the project is `./hlf.sh`. To use it like a CLI tool(`hlf`), you can symlink for convenience.
+
+Run the following from the root of the project:
 ```bash
 mkdir -p ./bin
 ln -s "$PWD/hlf.sh" ./bin/hlf
+```
+Then, add the bin directory to your shell’s PATH:
+```bash
 export PATH="$PWD/bin:$PATH"
 ```
-
-You can now use `hlf` instead of `./hlf.sh`.
+> [!NOTE]
+> This export is only valid for your current shell session. If you start a new terminal, you’ll need to re-export or add it to your shell profile (`~/.bashrc`, `~/.zshrc`).
 
 To see all the options run `hlf help`
 
-### 2. Run Hyperledger Fabric Developer Environment
+### 2. Start Hyperledger Fabric Network
 ```bash
 hlf install
 hlf start
@@ -64,16 +69,19 @@ hlf start
 This will:
 - Install fabric `docker images`, `binaries` and clone `fabric-samples` repo.
 - Start the test network
-- Deploy the chaincode (as-a-service)
-- Output `CHAINCODE_ID` and `CHAINCODE_SERVER_ADDRESS` for development use
 
-Then:
+### 3. Deploy & Run the Fabric chaincode
+
 ```bash
-cd chaincode
-npm run build && npm run start
+hlf deploy
+hlf run
 ```
+This will:
+- Deploy the chaincode (as-a-service)
+- Install dependencies and build the chaincode (typescript)
+- Run the chaincode
 
-### 3. Run the Solana program
+### 4. Run the Solana program
 
 ```bash
 cd solana-program
@@ -81,3 +89,12 @@ npm install
 anchor build
 anchor test
 ```
+
+### 5. Clean Environment
+To gracefully shut down the network and clean up any leftover chaincode containers:
+```bash
+hlf stop
+```
+This will:
+- Stop the Fabric test network
+- Remove any chaincode containers left from previous runs
