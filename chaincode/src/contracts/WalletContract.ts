@@ -13,7 +13,7 @@ interface EncryptedMessage {
     authTag: string;
 }
 
-@Info({ title: 'WalletContract', description: 'PoC for Diffie-Hellman encryption/decryption between users' })
+@Info({ title: 'WalletContract', description: 'Diffie-Hellman encryption/decryption between users' })
 export class WalletContract extends Contract {
     // Fixed prime and generator values for consistent DH parameters
     private readonly DH_PRIME = 'FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF';
@@ -59,6 +59,7 @@ export class WalletContract extends Contract {
     }
 
     @Transaction()
+    @Returns('string')
     public async createUser(ctx: Context, id: string): Promise<string> {
         const { publicKey, privateKey } = this.generateDHKeyPair();
         const user: DHUser = { id, publicKey, privateKey };
@@ -67,7 +68,13 @@ export class WalletContract extends Contract {
     }
 
     @Transaction()
-    public async encryptMessage(ctx: Context, senderId: string, recipientId: string, message: string): Promise<string> {
+    @Returns('string')
+    public async encryptMessage(
+        ctx: Context,
+        senderId: string,
+        recipientId: string,
+        message: string
+    ): Promise<string> {
         const sender = await this.getUser(ctx, senderId);
         const recipient = await this.getUser(ctx, recipientId);
         const sharedSecret = this.computeSharedSecret(sender.privateKey, recipient.publicKey);
@@ -76,7 +83,15 @@ export class WalletContract extends Contract {
     }
 
     @Transaction()
-    public async decryptMessage(ctx: Context, recipientId: string, senderId: string, encryptedData: string, iv: string, authTag: string): Promise<string> {
+    @Returns('string')
+    public async decryptMessage(
+        ctx: Context,
+        recipientId: string,
+        senderId: string,
+        encryptedData: string,
+        iv: string,
+        authTag: string
+    ): Promise<string> {
         const recipient = await this.getUser(ctx, recipientId);
         const sender = await this.getUser(ctx, senderId);
         const sharedSecret = this.computeSharedSecret(recipient.privateKey, sender.publicKey);
