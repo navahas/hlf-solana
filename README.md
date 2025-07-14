@@ -43,7 +43,7 @@ sequenceDiagram
 
 ## Setup Instructions
 
-### 1. Set up `hlf` CLI (dev-friendly)
+- 1. Set up `hlf` CLI (dev-friendly)
 
 The main script for interacing with the project is `./hlf.sh`. To use it like a CLI tool(`hlf`), you can symlink for convenience.
 
@@ -61,28 +61,21 @@ export PATH="$PWD/bin:$PATH"
 
 To see all the options run `hlf help`
 
-### 2. Start Hyperledger Fabric Network
+- 2. Start Hyperledger Fabric Network
 ```bash
 hlf install
 hlf start
 ```
-This will:
-- Install fabric `docker images`, `binaries` and clone `fabric-samples` repo.
-- Start the test network
+_Installs Fabric Docker images/binaries, clones `fabric-samples` repo and start test network._
 
-### 3. Deploy & Run the Fabric chaincode
-
+- 3. Deploy & Run the Fabric chaincode
 ```bash
 hlf deploy
 hlf run
 ```
-This will:
-- Deploy the chaincode (as-a-service)
-- Install dependencies and build the chaincode (typescript)
-- Run the chaincode
+_Deploys chaincode (as-a-service), installs dependencies, builds, and runs it._
 
-### 4. Run the Solana program
-
+- 4. Run the Solana program
 ```bash
 cd solana-program
 npm install
@@ -90,11 +83,9 @@ anchor build
 anchor test
 ```
 
-### 5. Clean Environment
+- Clean Environment
 To gracefully shut down the network and clean up any leftover chaincode containers:
 ```bash
 hlf stop
 ```
-This will:
-- Stop the Fabric test network
-- Remove any chaincode containers left from previous runs
+_Stops Fabric network and removes chaincode containers._
