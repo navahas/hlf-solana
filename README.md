@@ -41,9 +41,27 @@ sequenceDiagram
 ````
 </details>
 
-## Setup Instructions
+## QuickStart
+To get the project up and running quickly, follow these steps in two separate terminal windows.
+```bash
+### Terminal 1 (Hyperledger Fabric & Chaincode)
+mkdir -p ./bin
+ln -s "$PWD/hlf.sh" ./bin/hlf
+export PATH="$PWD/bin:$PATH"
+hlf install && hlf start && hlf deploy && run
 
-- 1. Set up `hlf` CLI (dev-friendly)
+### Terminal 2 (Solana Program)
+cd solana-program
+npm install
+anchor build
+anchor test
+
+## Cleanup
+hlf stop
+```
+--- 
+## Setup Instructions
+1. Set up `hlf` CLI (dev-friendly)
 
 The main script for interacing with the project is `./hlf.sh`. To use it like a CLI tool(`hlf`), you can symlink for convenience.
 
@@ -61,21 +79,21 @@ export PATH="$PWD/bin:$PATH"
 
 To see all the options run `hlf help`
 
-- 2. Start Hyperledger Fabric Network
+2. Start Hyperledger Fabric Network
 ```bash
 hlf install
 hlf start
 ```
 _Installs Fabric Docker images/binaries, clones `fabric-samples` repo and start test network._
 
-- 3. Deploy & Run the Fabric chaincode
+3. Deploy & Run the Fabric chaincode
 ```bash
 hlf deploy
 hlf run
 ```
 _Deploys chaincode (as-a-service), installs dependencies, builds, and runs it._
 
-- 4. Run the Solana program
+4. Run the Solana program
 ```bash
 cd solana-program
 npm install
