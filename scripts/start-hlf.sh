@@ -4,7 +4,7 @@ set -e
 
 source "$(dirname "$0")/log.sh"
 
-# ./scripts/clear-cc-containers.sh
+./scripts/clear-cc-containers.sh
 
 cd ./fabric-samples/test-network
 
